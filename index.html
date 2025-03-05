@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />	
+<title></title>
+<!-- write your code here -->
+<style>
+	body{
+		margin: 0px;
+		padding: 0px;
+		overflow-x: hidden;
+		overflow-y: hidden;
+		background-color: black;
+	}
+</style>
+<style>
+/* center style */
+  #animation_container, #_preload_div_ {
+	position:absolute;
+	margin:auto;
+	left:0;right:0;
+	top:0;bottom:0;
+  }
+</style>
+<style>
+/* loading style */
+	#_preload_div_ {
+		display: flex;
+		width: 100vw;
+		height: 100vh;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+	}
+	.circle {
+		width: 200px;
+		height: 200px;
+		position: absolute;
+		border-radius: 50%;
+		background: #ffffff;
+	}
+	.mask {	
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		left: 0px;
+		top: 0px;
+		background: #FFF;
+		position: absolute;
+	}
+	.mask img{
+		width: 160px;
+		height: 160px;
+	}
+	#pie_text{
+		font-size: 30px;
+		color: #000000;
+		position: relative;
+		top: 100px;
+	}
+</style>
+<script src="./js/createjs.min.js"></script>
+<script src="index.js?1741053331258"></script>
+<script>
+var canvas, stage, exportRoot, anim_container, dom_overlay_container, fnStartAnimation;
+function init(callback) {
+	canvas = document.getElementById("canvas");
+	anim_container = document.getElementById("animation_container");
+	dom_overlay_container = document.getElementById("dom_overlay_container");
+	var comp=AdobeAn.getComposition("F73ADAE20307614D9FA4BB2E240A8720");
+	var lib=comp.getLibrary();
+	var loader = new createjs.LoadQueue(false);
+	loader.addEventListener("fileload", function(evt){handleFileLoad(evt,comp)});
+	loader.addEventListener("complete", function(evt){handleComplete(evt,comp)});
+	loader.addEventListener("progress", function(evt){handleProgress(evt);});/* 資源加載監聽 */
+	var lib=comp.getLibrary();
+	loader.loadManifest(lib.properties.manifest);
+	comp.cb = callback;
+}
+/* 資源加載進度 */
+function handleProgress(e) {
+	var pie_text = document.getElementById("pie_text");
+	pie_text.innerHTML =  "Loading "+parseInt(e.progress * 100 )+"%";
+}
+function handleFileLoad(evt, comp) {
+	var images=comp.getImages();	
+	if (evt && (evt.item.type == "image")) { images[evt.item.id] = evt.result; }	
+}
+function handleComplete(evt,comp) {
+	//This function is always called, irrespective of the content. You can use the variable "stage" after it is created in token create_stage.
+	var lib=comp.getLibrary();
+	var ss=comp.getSpriteSheet();
+	var queue = evt.target;
+	var ssMetadata = lib.ssMetadata;
+	for(i=0; i<ssMetadata.length; i++) {
+		ss[ssMetadata[i].name] = new createjs.SpriteSheet( {"images": [queue.getResult(ssMetadata[i].name)], "frames": ssMetadata[i].frames} )
+	}
+	var preloaderDiv = document.getElementById("_preload_div_");
+	preloaderDiv.style.display = 'none';
+	canvas.style.display = 'block';
+	exportRoot = new lib.時間數線_HTML5Canvas();
+	stage = new lib.Stage(canvas);
+	stage.enableMouseOver();
+	// 設置觸控
+    createjs.Touch.enable(stage,true,false);
+	(typeof comp.cb == "function") && comp.cb(exportRoot, lib);
+	//Registers the "tick" event listener.
+	fnStartAnimation = function() {
+		stage.addChild(exportRoot);
+		createjs.Ticker.framerate = lib.properties.fps;
+		createjs.Ticker.addEventListener("tick", stage);
+	}	    
+	//Code to support hidpi screens and responsive scaling.
+	AdobeAn.makeResponsive(true,'both',true,1,[canvas,preloaderDiv,anim_container,dom_overlay_container]);	
+	AdobeAn.compositionLoaded(lib.properties.id);
+	fnStartAnimation();
+}
+</script>
+<!-- write your code here -->
+<script defer src="js/HLEMath.Linegraph.js"></script></head>
+<body onload="init();" style="margin:0px;">
+	<div id="animation_container" style="background-color:rgba(255, 255, 255, 1.00); width:1280px; height:720px">
+		<canvas id="canvas" width="1280" height="720" style="position: absolute; display: none; background-color:rgba(255, 255, 255, 1.00);"></canvas>
+		<div id="dom_overlay_container" style="pointer-events:none; overflow:hidden; width:1280px; height:720px; position: absolute; left: 0px; top: 0px; display: none;">
+		</div>
+	</div>
+<!-- 加載進度條 -->
+	<div id='_preload_div_'>
+		<div class="circle">
+			<div class="mask"><img src="images/_preloader.gif"/></div>
+		</div>
+		<p id="pie_text">0%</p>		
+	</div>
+</body>
+</html>
